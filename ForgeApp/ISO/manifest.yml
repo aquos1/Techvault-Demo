@@ -1,11 +1,11 @@
 modules:
   macro:
-    - key: iso-hello-world
+    - key: iso-macro
       resource: main
       resolver:
         function: resolver
       title: ISO
-      description: Inserts Hello world!
+      description: Feature impact estimator
   function:
     - key: resolver
       handler: index.handler
@@ -13,8 +13,11 @@ resources:
   - key: main
     path: static/hello-world/build
 app:
+  id: ari:cloud:ecosystem::app/4091124f-2487-49f6-bd10-a2f80ed94b0a
   runtime:
     name: nodejs22.x
     memoryMB: 256
     architecture: arm64
-  id: ari:cloud:ecosystem::app/4091124f-2487-49f6-bd10-a2f80ed94b0a
+permissions:
+  scopes:
+    - read:confluence-content.summary
