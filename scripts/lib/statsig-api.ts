@@ -176,7 +176,7 @@ export class StatsigAPI {
         direction: metric.direction,
         hypothesizedValue: metric.hypothesizedValue,
       })),
-      idType: contract.statsig.idType,
+      idType: this.mapIdType(contract.statsig.idType),
       targetingGateID: contract.statsig.targetingGateID,
       tags: [...contract.metadata.tags, 'automated', 'branch-based'],
     };
@@ -202,7 +202,7 @@ export class StatsigAPI {
 
     return {
       description: contract.description || `Experiment: ${contract.experimentKey}`,
-      idType: contract.statsig.idType,
+      idType: this.mapIdType(contract.statsig.idType),
       hypothesis: contract.hypothesis || 'Testing new feature',
       groups: Object.entries(contract.variants).map(([name, variant]) => ({
         name: variant.name,
@@ -229,6 +229,19 @@ export class StatsigAPI {
       environment: 'environment_tier',
     };
     return mapping[type] || 'custom_field';
+  }
+
+  /**
+   * Map idType to Statsig Console API format
+   */
+  private mapIdType(idType: string): string {
+    const mapping: Record<string, string> = {
+      'user_id': 'userID',
+      'stable_id': 'stableID',
+      'userID': 'userID',
+      'stableID': 'stableID'
+    };
+    return mapping[idType] || 'userID';
   }
 
 }
