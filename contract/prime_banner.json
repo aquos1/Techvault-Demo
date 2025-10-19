@@ -1,0 +1,85 @@
+{
+  "experimentKey": "prime_banner",
+  "name": "Prime Banner Test",
+  "description": "Testing the impact of adding a Prime badge to product cards",
+  "hypothesis": "Adding a Prime badge increases click-through rates by 15%",
+  "variants": {
+    "control": {
+      "name": "Control",
+      "description": "No Prime badge shown",
+      "parameters": {
+        "showBadge": false,
+        "badgeText": ""
+      },
+      "passPercentage": 50
+    },
+    "treatment": {
+      "name": "Treatment", 
+      "description": "Prime badge displayed",
+      "parameters": {
+        "showBadge": true,
+        "badgeText": "PRIME"
+      },
+      "passPercentage": 50
+    }
+  },
+  "codeChanges": [
+    {
+      "file": "src/components/ProductCard.tsx",
+      "function": "ProductCard",
+      "wrapWith": "getExperiment",
+      "parameterUsage": "showBadge"
+    }
+  ],
+  "targetingRules": [
+    {
+      "name": "Branch-based targeting",
+      "conditions": [
+        {
+          "type": "branch",
+          "operator": "equals",
+          "targetValue": "exp/prime_banner"
+        }
+      ],
+      "passPercentage": 100,
+      "environments": ["development"]
+    }
+  ],
+  "allocation": 100,
+  "primaryMetrics": [
+    {
+      "name": "click_through_rate",
+      "type": "ratio",
+      "direction": "increase",
+      "hypothesizedValue": 15
+    }
+  ],
+  "secondaryMetrics": [
+    {
+      "name": "add_to_cart",
+      "type": "count",
+      "direction": "increase"
+    }
+  ],
+  "branchConfig": {
+    "branchName": "exp/prime_banner",
+    "targetBranch": "main",
+    "createFromBranch": "main"
+  },
+  "deployment": {
+    "platform": "vercel",
+    "waitForDeployment": true,
+    "deploymentTimeout": 300000
+  },
+  "statsig": {
+    "idType": "user_id",
+    "environment": "development",
+    "autoStart": false
+  },
+  "metadata": {
+    "author": "experiment-automation",
+    "tags": ["automated", "branch-based", "ui", "conversion"],
+    "estimatedDuration": "2 weeks",
+    "successCriteria": "15% increase in click-through rate"
+  }
+}

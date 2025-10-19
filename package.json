@@ -7,14 +7,25 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "traffic": "tsx ./scripts/generateTraffic.ts"
+    "traffic": "tsx ./scripts/generateTraffic.ts",
+    "experiment": "tsx scripts/experiment-cli.ts",
+    "experiment:create": "tsx scripts/run-experiment.ts",
+    "experiment:verify": "tsx scripts/experiment-cli.ts verify",
+    "experiment:status": "tsx scripts/experiment-cli.ts status",
+    "experiment:start": "tsx scripts/experiment-cli.ts start",
+    "experiment:stop": "tsx scripts/experiment-cli.ts stop",
+    "experiment:list": "tsx scripts/experiment-cli.ts list",
+    "experiment:preflight": "tsx scripts/experiment-cli.ts preflight",
+    "env:validate": "tsx scripts/lib/env-validator.ts",
+    "env:check": "npm run env:validate"
   },
   "dependencies": {
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",
     "statsig-js": "^4.0.0",
-    "statsig-node": "^1.0.0"
+    "statsig-node": "^1.0.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^20",

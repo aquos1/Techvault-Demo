@@ -1,0 +1,99 @@
+name: Experiment Activation
+
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ["Deploy to Production"]
+    types: [completed]
+
+jobs:
+  activate-experiment:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'feat(experiment)')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'dh25-demo-site/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./dh25-demo-site
+        run: npm ci
+
+      - name: Extract experiment key from commit
+        id: extract-key
+        run: |
+          # Extract experiment key from commit message
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" =~ feat\(experiment\):\ ([a-zA-Z0-9_-]+) ]]; then
+            EXPERIMENT_KEY="${BASH_REMATCH[1]}"
+            echo "experiment_key=$EXPERIMENT_KEY" >> $GITHUB_OUTPUT
+            echo "Found experiment key: $EXPERIMENT_KEY"
+          else
+            echo "No experiment key found in commit message"
+            echo "experiment_key=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run preflight checks
+        if: steps.extract-key.outputs.experiment_key != ''
+        working-directory: ./dh25-demo-site
+        run: npm run experiment:preflight ${{ steps.extract-key.outputs.experiment_key }}
+        env:
+          NEXT_PUBLIC_STATSIG_CLIENT_KEY: ${{ secrets.NEXT_PUBLIC_STATSIG_CLIENT_KEY }}
+          STATSIG_CONSOLE_API_KEY: ${{ secrets.STATSIG_CONSOLE_API_KEY }}
+          NEXT_PUBLIC_STATSIG_TIER: ${{ secrets.NEXT_PUBLIC_STATSIG_TIER || 'development' }}
+
+      - name: Start experiment in Statsig
+        if: steps.extract-key.outputs.experiment_key != ''
+        working-directory: ./dh25-demo-site
+        run: npm run experiment:start ${{ steps.extract-key.outputs.experiment_key }}
+        env:
+          NEXT_PUBLIC_STATSIG_CLIENT_KEY: ${{ secrets.NEXT_PUBLIC_STATSIG_CLIENT_KEY }}
+          STATSIG_CONSOLE_API_KEY: ${{ secrets.STATSIG_CONSOLE_API_KEY }}
+          NEXT_PUBLIC_STATSIG_TIER: ${{ secrets.STATSIG_CONSOLE_API_KEY || 'development' }}
+
+      - name: Post activation status
+        if: steps.extract-key.outputs.experiment_key != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const experimentKey = '${{ steps.extract-key.outputs.experiment_key }}';
+            
+            // Create a deployment status
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment?.id || 1,
+              state: 'success',
+              description: `Experiment ${experimentKey} activated successfully`,
+              environment_url: `https://statsig.com/experiments/${experimentKey}`
+            });
+            
+            console.log(`✅ Experiment ${experimentKey} activated successfully`);
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send notification
+        if: steps.extract-key.outputs.experiment_key != '' && env.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"🚀 Experiment ${{ steps.extract-key.outputs.experiment_key }} has been activated and is now running!\"}" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Output activation info
+        run: |
+          if [[ "${{ steps.extract-key.outputs.experiment_key }}" != "" ]]; then
+            echo "🎉 Experiment activation completed!"
+            echo "Experiment Key: ${{ steps.extract-key.outputs.experiment_key }}"
+            echo "Status: Active"
+            echo "Monitor at: https://statsig.com/experiments/${{ steps.extract-key.outputs.experiment_key }}"
+          else
+            echo "No experiment to activate"
+          fi
