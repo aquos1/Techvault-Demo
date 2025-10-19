@@ -1,0 +1,188 @@
+name: Experiment Deployment
+
+on:
+  push:
+    branches: ['exp/*']
+  workflow_dispatch:
+    inputs:
+      experiment_key:
+        description: 'Experiment key to deploy'
+        required: true
+        type: string
+
+jobs:
+  deploy-experiment:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'dh25-demo-site/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./dh25-demo-site
+        run: npm ci
+
+      - name: Run linting
+        working-directory: ./dh25-demo-site
+        run: npm run lint
+
+      - name: Run environment validation
+        working-directory: ./dh25-demo-site
+        run: npm run env:validate
+        env:
+          NEXT_PUBLIC_STATSIG_CLIENT_KEY: ${{ secrets.NEXT_PUBLIC_STATSIG_CLIENT_KEY }}
+          STATSIG_CONSOLE_API_KEY: ${{ secrets.STATSIG_CONSOLE_API_KEY }}
+          NEXT_PUBLIC_STATSIG_TIER: ${{ secrets.NEXT_PUBLIC_STATSIG_TIER || 'development' }}
+
+      - name: Build application
+        working-directory: ./dh25-demo-site
+        run: npm run build
+        env:
+          NEXT_PUBLIC_STATSIG_CLIENT_KEY: ${{ secrets.NEXT_PUBLIC_STATSIG_CLIENT_KEY }}
+          NEXT_PUBLIC_STATSIG_TIER: ${{ secrets.NEXT_PUBLIC_STATSIG_TIER || 'development' }}
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./dh25-demo-site
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: Extract experiment key
+        id: extract-key
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "experiment_key=${{ github.event.inputs.experiment_key }}" >> $GITHUB_OUTPUT
+          else
+            # Extract from branch name (exp/prime_banner -> prime_banner)
+            BRANCH_NAME="${{ github.ref_name }}"
+            EXPERIMENT_KEY="${BRANCH_NAME#exp/}"
+            echo "experiment_key=$EXPERIMENT_KEY" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get deployment URL
+        id: deployment-url
+        run: |
+          # This would typically come from Vercel deployment output
+          # For now, we'll construct a preview URL
+          EXPERIMENT_KEY="${{ steps.extract-key.outputs.experiment_key }}"
+          PREVIEW_URL="https://${EXPERIMENT_KEY}-dh25-demo-site.vercel.app"
+          echo "url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+          echo "Deployment URL: $PREVIEW_URL"
+
+      - name: Create Pull Request
+        if: github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const experimentKey = '${{ steps.extract-key.outputs.experiment_key }}';
+            const deploymentUrl = '${{ steps.deployment-url.outputs.url }}';
+            
+            // Check if PR already exists
+            const existingPRs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `exp/${experimentKey}`,
+              base: 'main',
+              state: 'open'
+            });
+            
+            if (existingPRs.data.length > 0) {
+              console.log('PR already exists for this experiment');
+              return;
+            }
+            
+            // Create PR
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `feat(experiment): ${experimentKey}`,
+              head: `exp/${experimentKey}`,
+              base: 'main',
+              body: `## Experiment: ${experimentKey}
+              
+              **Deployment URL:** ${deploymentUrl}
+              
+              **Status:** Ready for review
+              
+              ### Experiment Details
+              - Branch: \`exp/${experimentKey}\`
+              - Deployment: ${deploymentUrl}
+              - Status: Deployed and ready for testing
+              
+              ### Next Steps
+              - [ ] Review code changes
+              - [ ] Test deployment
+              - [ ] Approve and merge
+              - [ ] Start experiment in Statsig
+              
+              ### Checklist
+              - [ ] Code changes look good
+              - [ ] Deployment is working
+              - [ ] No breaking changes
+              - [ ] Ready to start experiment
+              `,
+              labels: ['experiment', 'automated']
+            });
+            
+            console.log(`Created PR #${pr.data.number} for experiment ${experimentKey}`);
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment deployment URL on PR
+        if: github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deploymentUrl = '${{ steps.deployment-url.outputs.url }}';
+            const experimentKey = '${{ steps.extract-key.outputs.experiment_key }}';
+            
+            // Find the PR for this branch
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `exp/${experimentKey}`,
+              base: 'main',
+              state: 'open'
+            });
+            
+            if (prs.data.length > 0) {
+              const pr = prs.data[0];
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: `🚀 **Deployment Ready!**
+                
+                **Preview URL:** ${deploymentUrl}
+                
+                The experiment has been deployed and is ready for testing.
+                
+                ### Testing Checklist
+                - [ ] Visit the preview URL
+                - [ ] Verify experiment is working
+                - [ ] Check console for any errors
+                - [ ] Test both variants (if applicable)
+                `
+              });
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Output deployment info
+        run: |
+          echo "🎉 Experiment deployment completed!"
+          echo "Experiment Key: ${{ steps.extract-key.outputs.experiment_key }}"
+          echo "Deployment URL: ${{ steps.deployment-url.outputs.url }}"
+          echo "Branch: ${{ github.ref_name }}"
