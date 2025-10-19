@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import StatsigProvider from './components/StatsigProvider';
 
 export const metadata: Metadata = {
   title: 'TechVault - Premium Tech Store',
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-50">
-        {children}
+        <StatsigProvider>
+          {children}
+        </StatsigProvider>
       </body>
     </html>
   );

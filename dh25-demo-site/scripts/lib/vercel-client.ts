@@ -306,6 +306,18 @@ export function createVercelClient(): VercelClient {
 }
 
 /**
- * Global Vercel client instance
+ * Global Vercel client instance (lazy-loaded)
  */
-export const vercelClient = createVercelClient();
+export function getVercelClient(): VercelClient {
+  try {
+    return createVercelClient();
+  } catch (error) {
+    console.warn('Vercel client not available:', error);
+    // Return a mock client for development
+    return {
+      waitForDeployment: async () => ({ success: true, url: 'https://mock-deployment.vercel.app' }),
+      createDeployment: async () => ({ success: true, url: 'https://mock-deployment.vercel.app' }),
+      pollDeployment: async () => ({ success: true, url: 'https://mock-deployment.vercel.app' }),
+    } as any;
+  }
+}

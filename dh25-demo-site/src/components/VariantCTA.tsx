@@ -20,7 +20,7 @@ export default function VariantCTA({ product, onAddToCart, location }: VariantCT
     const loadExperiment = async () => {
       try {
         const experiment = await getExperiment('cta_button_test');
-        setVariant(experiment.variant);
+        setVariant(experiment.variant as 'X' | 'Y');
       } catch (error) {
         console.error('Error loading experiment:', error);
         // Default to variant X on error

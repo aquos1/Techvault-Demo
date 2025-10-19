@@ -10,12 +10,14 @@
   overflow: hidden;
 }
 
-/* Amazon color scheme */
+/* Amazon Fresh color scheme */
 :root {
   --amazon-orange: #ff9900;
   --amazon-dark: #131921;
   --amazon-light: #eaeded;
   --amazon-blue: #232f3e;
+  --amazon-fresh-green: #007600;
+  --amazon-fresh-light-green: #00a650;
 }
 
 /* Amazon-style fonts */

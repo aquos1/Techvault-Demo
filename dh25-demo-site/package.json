@@ -1,5 +1,5 @@
 {
-  "name": "techvault-store",
+  "name": "amazon-fresh-demo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -20,6 +20,10 @@
     "env:check": "npm run env:validate"
   },
   "dependencies": {
+    "@statsig/js-client": "^3.27.0",
+    "@statsig/session-replay": "^3.27.0",
+    "@statsig/web-analytics": "^3.27.0",
+    "dotenv": "^17.2.3",
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",

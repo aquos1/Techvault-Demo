@@ -9,10 +9,22 @@ import { readFileSync, existsSync } from 'fs';
 import { join, resolve } from 'path';
 import { execSync } from 'child_process';
 import { validateContract, createDefaultContract, type ExperimentContract } from './lib/contract-schema.js';
-import { CodeGenerator } from './lib/code-generator.js';
+import { FastCodeGenerator } from './lib/fast-code-generator.js';
 import { StatsigAPI } from './lib/statsig-api.js';
-import { vercelClient } from './lib/vercel-client.js';
-import { githubClient } from './lib/github-client.js';
+import { getVercelClient } from './lib/vercel-client.js';
+import { getGitHubClient } from './lib/github-client.js';
+
+// Load environment variables from .env.local
+try {
+  const dotenv = require('dotenv');
+  const envPath = join(process.cwd(), '.env.local');
+  if (existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    console.log(`🔧 Loaded environment variables from .env.local`);
+  }
+} catch (error) {
+  console.warn('⚠️  dotenv not available, using system environment variables');
+}
 
 /**
  * Main experiment runner
@@ -20,12 +32,12 @@ import { githubClient } from './lib/github-client.js';
 class ExperimentRunner {
   private projectRoot: string;
   private statsigAPI: StatsigAPI;
-  private codeGenerator: CodeGenerator;
+  private codeGenerator: FastCodeGenerator;
 
   constructor() {
     this.projectRoot = resolve(process.cwd());
     this.statsigAPI = new StatsigAPI();
-    this.codeGenerator = new CodeGenerator(this.projectRoot);
+    this.codeGenerator = new FastCodeGenerator(this.projectRoot);
   }
 
   /**
@@ -62,9 +74,14 @@ class ExperimentRunner {
       console.log(`✅ Committed and pushed changes to branch: ${branchName}`);
 
       // Step 5: Wait for deployment (if enabled)
+      let previewUrl = '';
       if (contract.deployment.waitForDeployment) {
-        const previewUrl = await this.waitForDeployment(branchName, contract);
+        previewUrl = await this.waitForDeployment(branchName, contract);
         console.log(`✅ Deployment ready at: ${previewUrl}`);
+      } else {
+        // Fallback URL for when deployment is disabled
+        previewUrl = `https://${branchName.replace(/[^a-z0-9-]/gi, '-')}-dh25-demo-site.vercel.app`;
+        console.log(`⚠️  Using fallback URL: ${previewUrl}`);
       }
 
       // Step 6: Create experiment in Statsig
@@ -75,13 +92,14 @@ class ExperimentRunner {
       await this.statsigAPI.updateExperimentTargeting(experimentId, contract);
       console.log(`✅ Configured targeting rules for experiment: ${experimentId}`);
 
-      // Step 8: Create Pull Request
-      const prResult = await this.createPullRequest(experimentKey, branchName, previewUrl, contract);
-      if (prResult.success) {
-        console.log(`✅ Created PR #${prResult.pr?.number}: ${prResult.pr?.html_url}`);
-      } else {
-        console.log(`⚠️  Failed to create PR: ${prResult.error}`);
-      }
+      // Step 8: Create Pull Request (DISABLED FOR TESTING)
+      console.log(`⏭️  Skipping PR creation (disabled for testing)`);
+      // const prResult = await this.createPullRequest(experimentKey, branchName, previewUrl, contract);
+      // if (prResult.success) {
+      //   console.log(`✅ Created PR #${prResult.pr?.number}: ${prResult.pr?.html_url}`);
+      // } else {
+      //   console.log(`⚠️  Failed to create PR: ${prResult.error}`);
+      // }
 
       // Step 9: Start experiment (if auto-start enabled)
       if (contract.statsig.autoStart) {
@@ -95,9 +113,7 @@ class ExperimentRunner {
       console.log(`📊 Experiment ID: ${experimentId}`);
       console.log(`🌿 Branch: ${branchName}`);
       console.log(`🔗 Preview URL: ${previewUrl}`);
-      if (prResult.success) {
-        console.log(`🔀 PR: ${prResult.pr?.html_url}`);
-      }
+      console.log(`\n✨ Check your Statsig console to see the experiment: https://console.statsig.com/experiments`);
 
     } catch (error) {
       console.error('❌ Experiment workflow failed:', error);
@@ -189,6 +205,7 @@ ${contract.description || 'Experiment implementation'}
     console.log(`⏳ Waiting for Vercel deployment...`);
     
     try {
+      const vercelClient = getVercelClient();
       const result = await vercelClient.waitForDeployment(branchName, this.projectRoot);
       
       if (result.success && result.url) {
@@ -218,6 +235,7 @@ ${contract.description || 'Experiment implementation'}
     try {
       console.log(`🔀 Creating Pull Request for experiment: ${experimentKey}`);
       
+      const githubClient = getGitHubClient();
       const result = await githubClient.createExperimentPR(
         experimentKey,
         branchName,

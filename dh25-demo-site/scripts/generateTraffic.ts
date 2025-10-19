@@ -13,6 +13,9 @@ interface Product {
   price: number;
   image: string;
   description: string;
+  category?: string;
+  unit?: string;
+  freshness?: string;
 }
 
 interface User {
@@ -34,14 +37,18 @@ const BASE_URL = process.env.TRAFFIC_BASE_URL || 'http://localhost:3000';
 
 // Product data (matches the client)
 const PRODUCTS: Product[] = [
-  { id: '1', name: 'Wireless Bluetooth Headphones', price: 89.99, image: '/api/placeholder/300/200', description: 'Premium wireless headphones with noise cancellation and 30-hour battery life.' },
-  { id: '2', name: 'Smart Fitness Watch', price: 199.99, image: '/api/placeholder/300/200', description: 'Advanced fitness tracking with heart rate monitor, GPS, and water resistance.' },
-  { id: '3', name: 'Portable Bluetooth Speaker', price: 49.99, image: '/api/placeholder/300/200', description: 'Compact wireless speaker with 360-degree sound and 12-hour battery life.' },
-  { id: '4', name: 'USB-C Fast Charger', price: 24.99, image: '/api/placeholder/300/200', description: '60W fast charging adapter with multiple ports for all your devices.' },
-  { id: '5', name: 'Wireless Gaming Mouse', price: 79.99, image: '/api/placeholder/300/200', description: 'High-precision gaming mouse with customizable RGB lighting and 50-hour battery.' },
-  { id: '6', name: 'Mechanical Keyboard', price: 129.99, image: '/api/placeholder/300/200', description: 'RGB mechanical keyboard with tactile switches and programmable keys.' },
-  { id: '7', name: '4K Webcam', price: 149.99, image: '/api/placeholder/300/200', description: 'Ultra HD webcam with auto-focus, noise reduction, and privacy shutter.' },
-  { id: '8', name: 'Ergonomic Office Chair', price: 299.99, image: '/api/placeholder/300/200', description: 'Premium ergonomic chair with lumbar support and adjustable height.' },
+  { id: '1', name: 'Organic Bananas', price: 1.99, image: '/api/placeholder/300/200', description: 'Fresh organic bananas, perfect for snacking or baking. Sold by the bunch.', category: 'Fresh Produce', unit: 'per bunch', freshness: 'Fresh' },
+  { id: '2', name: 'Whole Milk', price: 3.49, image: '/api/placeholder/300/200', description: 'Fresh whole milk, perfect for cereal, coffee, and baking.', category: 'Dairy & Eggs', unit: 'per gallon', freshness: 'Fresh' },
+  { id: '3', name: 'Ground Beef 80/20', price: 5.99, image: '/api/placeholder/300/200', description: 'Fresh ground beef, perfect for burgers, meatballs, and tacos.', category: 'Meat & Seafood', unit: 'per lb', freshness: 'Fresh' },
+  { id: '4', name: 'Organic Spinach', price: 2.99, image: '/api/placeholder/300/200', description: 'Fresh organic spinach leaves, perfect for salads and cooking.', category: 'Fresh Produce', unit: 'per bag', freshness: 'Fresh' },
+  { id: '5', name: 'Free Range Eggs', price: 4.99, image: '/api/placeholder/300/200', description: 'Fresh free-range eggs from local farms.', category: 'Dairy & Eggs', unit: 'per dozen', freshness: 'Fresh' },
+  { id: '6', name: 'Salmon Fillet', price: 12.99, image: '/api/placeholder/300/200', description: 'Fresh Atlantic salmon fillet, perfect for grilling or baking.', category: 'Meat & Seafood', unit: 'per lb', freshness: 'Fresh' },
+  { id: '7', name: 'Organic Avocados', price: 2.49, image: '/api/placeholder/300/200', description: 'Fresh organic avocados, perfect for guacamole and toast.', category: 'Fresh Produce', unit: 'each', freshness: 'Fresh' },
+  { id: '8', name: 'Greek Yogurt', price: 4.49, image: '/api/placeholder/300/200', description: 'Creamy Greek yogurt, high in protein and perfect for breakfast.', category: 'Dairy & Eggs', unit: 'per container', freshness: 'Fresh' },
+  { id: '9', name: 'Chicken Breast', price: 6.99, image: '/api/placeholder/300/200', description: 'Fresh boneless chicken breast, perfect for grilling or baking.', category: 'Meat & Seafood', unit: 'per lb', freshness: 'Fresh' },
+  { id: '10', name: 'Organic Strawberries', price: 3.99, image: '/api/placeholder/300/200', description: 'Sweet organic strawberries, perfect for desserts and snacking.', category: 'Fresh Produce', unit: 'per container', freshness: 'Fresh' },
+  { id: '11', name: 'Cheddar Cheese', price: 5.99, image: '/api/placeholder/300/200', description: 'Sharp cheddar cheese, perfect for sandwiches and cooking.', category: 'Dairy & Eggs', unit: 'per block', freshness: 'Fresh' },
+  { id: '12', name: 'Fresh Bread', price: 2.99, image: '/api/placeholder/300/200', description: 'Freshly baked artisan bread, perfect for sandwiches and toast.', category: 'Bakery', unit: 'per loaf', freshness: 'Fresh' }
 ];
 
 // Countries for realistic geo distribution

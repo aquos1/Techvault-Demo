@@ -75,12 +75,21 @@ export class MCPClient {
   }
 
   /**
-   * Get authentication token from MCP config
+   * Get authentication token from MCP config or environment
    */
   private getAuthToken(): string {
+    // First try environment variable
+    if (process.env.STATSIG_CONSOLE_API_KEY) {
+      console.log(`🔑 Using STATSIG_CONSOLE_API_KEY from environment`);
+      return process.env.STATSIG_CONSOLE_API_KEY;
+    }
+    
+    // Fallback to MCP config
     const statsigConfig = this.mcpConfig?.mcpServers?.statsig;
     if (!statsigConfig?.env?.AUTH_TOKEN) {
-      throw new Error('Statsig AUTH_TOKEN not found in MCP configuration');
+      console.log(`❌ No STATSIG_CONSOLE_API_KEY found in environment`);
+      console.log(`Available env vars:`, Object.keys(process.env).filter(k => k.includes('STATSIG')));
+      throw new Error('Statsig AUTH_TOKEN not found in MCP configuration or environment');
     }
     return statsigConfig.env.AUTH_TOKEN;
   }

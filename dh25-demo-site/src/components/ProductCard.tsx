@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Product, CartItem } from '@/lib/analytics';
+import { Product, CartItem, logExperimentExposure } from '@/lib/analytics';
 import VariantCTA from './VariantCTA';
+import { getExperiment, logExposure } from '../lib/statsigClient';
+import { useState, useEffect } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -10,6 +12,36 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const [showBadge, setShowBadge] = useState(false);
+  const [experimentVariant, setExperimentVariant] = useState('control');
+
+  useEffect(() => {
+    const fetchExperiment = async () => {
+      try {
+        // Experiment: prime_banner
+        const experiment = await getExperiment('prime_banner');
+        setShowBadge(experiment.metadata?.config?.showBadge ?? false);
+        setExperimentVariant(experiment.variant);
+        
+        // Log exposure when user sees this experiment
+        await logExposure('prime_banner', experiment.variant, {
+          component: 'ProductCard',
+          parameter: 'showBadge'
+        });
+
+        // Also log to Statsig SDK
+        await logExperimentExposure('prime_banner', experiment.variant, {
+          component: 'ProductCard',
+          parameter: 'showBadge'
+        });
+      } catch (error) {
+        console.error('Error fetching experiment or logging exposure:', error);
+      }
+    };
+
+    fetchExperiment();
+  }, []);
+
   return (
     <div className="amazon-card p-4 hover:shadow-lg transition-shadow">
       <Link href={`/product/${product.id}`}>
@@ -27,6 +59,15 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           </h3>
         </Link>
         
+        {/* Freshness indicator */}
+        {product.freshness && (
+          <div className="flex items-center mb-2">
+            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+              {product.freshness}
+            </span>
+          </div>
+        )}
+        
         {/* Star rating */}
         <div className="flex items-center space-x-1 mb-2">
           <div className="flex text-yellow-400">
@@ -36,14 +77,23 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         </div>
         
         <div className="flex items-center justify-between mb-3">
-          <span className="text-lg font-bold text-red-600">
-            ${product.price}
-          </span>
-          <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded">prime</span>
+          <div>
+            <span className="text-lg font-bold text-red-600">
+              ${product.price}
+            </span>
+            {product.unit && (
+              <span className="text-xs text-gray-500 ml-1">
+                {product.unit}
+              </span>
+            )}
+          </div>
+          {showBadge && (
+            <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">prime</span>
+          )}
         </div>
         
         <div className="text-xs text-gray-500 mb-3">
-          FREE delivery on orders over $25
+          FREE delivery on orders over $35
         </div>
         
         <div>

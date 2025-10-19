@@ -6,6 +6,17 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 
+// Load environment variables from .env.local
+try {
+  const dotenv = require('dotenv');
+  const envPath = join(process.cwd(), '.env.local');
+  if (existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+  }
+} catch (error) {
+  // dotenv not available, continue without it
+}
+
 /**
  * Environment validation result
  */
