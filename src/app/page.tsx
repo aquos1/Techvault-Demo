@@ -8,6 +8,7 @@ import { initializeStatsig } from '@/lib/statsigClient';
 import Header from '@/components/Header';
 import ProductCard from '@/components/ProductCard';
 import CartDrawer from '@/components/CartDrawer';
+import DeliveryWindow from '@/components/DeliveryWindow';
 import productsData from '@/data/products.json';
 
 export default function HomePage() {
@@ -104,13 +105,13 @@ export default function HomePage() {
       
       <main className="bg-gray-100 min-h-screen">
         {/* Hero banner */}
-        <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white py-8">
+        <div className="bg-gradient-to-r from-green-600 to-green-800 text-white py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h1 className="text-4xl font-bold mb-2">TechVault Prime</h1>
-              <p className="text-xl">Top 100+ Tech Innovations</p>
-              <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded mt-4">
-                Shop Now
+              <h1 className="text-4xl font-bold mb-2">Amazon Fresh</h1>
+              <p className="text-xl">Fresh groceries delivered to your door</p>
+              <button className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded mt-4">
+                Shop Fresh Now
               </button>
             </div>
           </div>
@@ -119,11 +120,11 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Content sections in Amazon-style grid */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Keep shopping for */}
+            {/* Fresh Produce */}
             <div className="amazon-card p-4">
-              <h3 className="font-bold text-lg mb-4">Keep shopping for</h3>
+              <h3 className="font-bold text-lg mb-4">Fresh Produce</h3>
               <div className="amazon-grid">
-                {products.slice(0, 4).map((product) => (
+                {products.filter(p => p.category === 'Fresh Produce').slice(0, 4).map((product) => (
                   <div key={product.id} className="text-center">
                     <img
                       src={product.image}
@@ -131,18 +132,18 @@ export default function HomePage() {
                       className="w-full h-24 object-cover rounded mb-2"
                     />
                     <p className="text-sm text-gray-600 line-clamp-2">{product.name}</p>
-                    <p className="text-xs text-gray-500">2 viewed</p>
+                    <p className="text-xs text-gray-500">${product.price} {product.unit}</p>
                   </div>
                 ))}
               </div>
-              <Link href="#" className="text-blue-600 text-sm hover:underline">View your browsing history</Link>
+              <Link href="#" className="text-blue-600 text-sm hover:underline">View all Fresh Produce</Link>
             </div>
 
-            {/* Buy again */}
+            {/* Dairy & Eggs */}
             <div className="amazon-card p-4">
-              <h3 className="font-bold text-lg mb-4">Buy again</h3>
+              <h3 className="font-bold text-lg mb-4">Dairy & Eggs</h3>
               <div className="amazon-grid">
-                {products.slice(4, 8).map((product) => (
+                {products.filter(p => p.category === 'Dairy & Eggs').slice(0, 4).map((product) => (
                   <div key={product.id} className="text-center">
                     <img
                       src={product.image}
@@ -150,18 +151,18 @@ export default function HomePage() {
                       className="w-full h-24 object-cover rounded mb-2"
                     />
                     <p className="text-sm text-gray-600 line-clamp-2">{product.name}</p>
-                    <p className="text-xs text-gray-500">$29.99</p>
+                    <p className="text-xs text-gray-500">${product.price} {product.unit}</p>
                   </div>
                 ))}
               </div>
-              <Link href="#" className="text-blue-600 text-sm hover:underline">More in Buy Again</Link>
+              <Link href="#" className="text-blue-600 text-sm hover:underline">View all Dairy & Eggs</Link>
             </div>
 
-            {/* Continue shopping deals */}
+            {/* Meat & Seafood */}
             <div className="amazon-card p-4">
-              <h3 className="font-bold text-lg mb-4">Continue shopping deals</h3>
+              <h3 className="font-bold text-lg mb-4">Meat & Seafood</h3>
               <div className="amazon-grid">
-                {products.slice(0, 4).map((product) => (
+                {products.filter(p => p.category === 'Meat & Seafood').slice(0, 4).map((product) => (
                   <div key={product.id} className="text-center">
                     <img
                       src={product.image}
@@ -169,48 +170,48 @@ export default function HomePage() {
                       className="w-full h-24 object-cover rounded mb-2"
                     />
                     <p className="text-sm text-gray-600 line-clamp-2">{product.name}</p>
-                    <p className="text-xs text-gray-500">$19.99</p>
+                    <p className="text-xs text-gray-500">${product.price} {product.unit}</p>
                   </div>
                 ))}
               </div>
-              <Link href="#" className="text-blue-600 text-sm hover:underline">See more deals</Link>
+              <Link href="#" className="text-blue-600 text-sm hover:underline">View all Meat & Seafood</Link>
             </div>
 
-            {/* Today's deals */}
+            {/* Today's Fresh Deals */}
             <div className="amazon-card p-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg">Shop Today&apos;s Deals</h3>
+                <h3 className="font-bold text-lg">Today&apos;s Fresh Deals</h3>
                 <Link href="#" className="text-blue-600 text-sm hover:underline">See all deals</Link>
               </div>
               <div className="space-y-4">
                 <div className="text-center">
                   <img
                     src="/api/placeholder/200/150"
-                    alt="French Press"
+                    alt="Organic Apples"
                     className="w-full h-32 object-cover rounded mb-2"
                   />
-                  <p className="text-sm font-medium">French Press Coffee Maker</p>
-                  <p className="text-lg font-bold text-red-600">$24.99</p>
-                  <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded">prime</span>
+                  <p className="text-sm font-medium">Organic Gala Apples</p>
+                  <p className="text-lg font-bold text-red-600">$2.99</p>
+                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">prime</span>
                 </div>
                 <div className="border-t pt-4">
                   <div className="flex items-center space-x-2 mb-2">
                     <img
                       src="/api/placeholder/60/60"
-                      alt="Door Lock"
+                      alt="Fresh Bread"
                       className="w-12 h-12 object-cover rounded"
                     />
                     <div>
-                      <p className="text-sm font-medium">Evanshow Fingerprint Door Lock</p>
+                      <p className="text-sm font-medium">Artisan Sourdough Bread</p>
                       <div className="flex items-center space-x-1">
                         <div className="flex text-yellow-400">
                           ★★★★★
                         </div>
-                        <span className="text-xs text-gray-500">350</span>
+                        <span className="text-xs text-gray-500">89</span>
                       </div>
-                      <p className="text-lg font-bold text-red-600">$29.99</p>
-                      <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded">prime</span>
-                      <span className="text-xs text-gray-500 ml-2">Sponsored</span>
+                      <p className="text-lg font-bold text-red-600">$3.99</p>
+                      <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">prime</span>
+                      <span className="text-xs text-gray-500 ml-2">Fresh Daily</span>
                     </div>
                   </div>
                 </div>
@@ -218,17 +219,24 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Featured products section */}
+          {/* Delivery Window Section */}
           <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-6">Featured Products</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={addToCart}
-                />
-              ))}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <h2 className="text-2xl font-bold mb-6">Fresh Groceries</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onAddToCart={addToCart}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="lg:col-span-1">
+                <DeliveryWindow />
+              </div>
             </div>
           </div>
         </div>

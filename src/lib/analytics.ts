@@ -11,6 +11,9 @@ export interface Product {
   price: number;
   image: string;
   description: string;
+  category?: string;
+  unit?: string;
+  freshness?: string;
 }
 
 export interface CartItem {
