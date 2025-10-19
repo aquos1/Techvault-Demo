@@ -28,6 +28,15 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     component: 'ProductCard',
     parameter: 'showBadge'
   });
+  // Experiment: prime_banner
+  const experiment = await getExperiment('prime_banner');
+  const showBadge = experiment.metadata?.config?.showBadge ?? false;
+  
+  // Log exposure when user sees this experiment
+  await logExposure('prime_banner', experiment.variant, {
+    component: 'ProductCard',
+    parameter: 'showBadge'
+  });
   return (
     <div className="amazon-card p-4 hover:shadow-lg transition-shadow">
       <Link href={`/product/${product.id}`}>

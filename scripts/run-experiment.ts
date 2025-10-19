@@ -14,6 +14,18 @@ import { StatsigAPI } from './lib/statsig-api.js';
 import { getVercelClient } from './lib/vercel-client.js';
 import { getGitHubClient } from './lib/github-client.js';
 
+// Load environment variables from .env.local
+try {
+  const dotenv = require('dotenv');
+  const envPath = join(process.cwd(), '.env.local');
+  if (existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    console.log(`🔧 Loaded environment variables from .env.local`);
+  }
+} catch (error) {
+  console.warn('⚠️  dotenv not available, using system environment variables');
+}
+
 /**
  * Main experiment runner
  */
