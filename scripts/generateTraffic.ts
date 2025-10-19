@@ -3,8 +3,10 @@
 /**
  * Synthetic traffic generator for Statsig demo
  * Simulates realistic user journeys with A/B testing
- * Note: This is a stub implementation ready for Statsig integration
+ * Now integrated with real Statsig SDK
  */
+
+import * as Statsig from 'statsig-node';
 
 // Types
 interface Product {
@@ -34,6 +36,9 @@ interface AnalyticsEvent {
 const DEFAULT_USERS = 100;
 const DEFAULT_ACTIONS = 5;
 const BASE_URL = process.env.TRAFFIC_BASE_URL || 'http://localhost:3000';
+
+// Statsig configuration
+let statsigInitialized = false;
 
 // Product data (matches the client)
 const PRODUCTS: Product[] = [
@@ -66,37 +71,71 @@ function generateUser(): User {
 }
 
 /**
- * Get experiment variant for user (stub implementation)
- * In real implementation, this would call Statsig.getExperiment()
+ * Initialize Statsig SDK with Server Secret Key
  */
-async function getExperimentVariant(user: User): Promise<'X' | 'Y'> {
-  // Mock experiment logic - in real implementation this would call Statsig
-  const hash = user.id.split('').reduce((a, b) => {
-    a = ((a << 5) - a) + b.charCodeAt(0);
-    return a & a;
-  }, 0);
-  const variant = Math.abs(hash) % 2 === 0 ? 'X' : 'Y';
+async function initializeStatsig(): Promise<void> {
+  if (statsigInitialized) return;
+  
+  const serverSecret = process.env.STATSIG_SERVER_SECRET;
+  if (!serverSecret) {
+    throw new Error('STATSIG_SERVER_SECRET environment variable is required');
+  }
+  
+  await Statsig.initialize(serverSecret);
+  statsigInitialized = true;
+  console.log('✅ Statsig SDK initialized with Server Secret');
+}
+
+/**
+ * Get experiment variant for user using Statsig SDK
+ */
+async function getExperimentVariant(user: User): Promise<'control' | 'treatment'> {
+  await initializeStatsig();
+  
+  const userContext = {
+    userID: user.id,
+    custom: {
+      country: user.country,
+      device: user.device
+    }
+  };
+  
+  // Get experiment config (automatically logs exposure)
+  const config = await Statsig.getConfig(userContext, 'prime_banner');
+  const showBadge = config.getBool('showBadge', false);
+  const variant = showBadge ? 'treatment' : 'control';
   
   console.log(`User ${user.id} assigned to variant ${variant}`);
   return variant;
 }
 
 /**
- * Log event (stub implementation)
- * In real implementation, this would call Statsig.logEvent()
+ * Log event using Statsig SDK
  */
 async function logEvent(user: User, event: AnalyticsEvent): Promise<void> {
-  console.log(`Event for user ${user.id}:`, {
-    name: event.name,
-    value: event.value,
-    metadata: {
+  await initializeStatsig();
+  
+  const userContext = {
+    userID: user.id,
+    custom: {
+      country: user.country,
+      device: user.device
+    }
+  };
+  
+  try {
+    // Log event using Statsig SDK (automatically sends to correct endpoints)
+    Statsig.logEvent(userContext, event.name, event.value, {
       ...event.metadata,
-      user_id: user.id,
       country: user.country,
       device: user.device,
       timestamp: new Date().toISOString(),
-    },
-  });
+    });
+    
+    console.log(`📊 Logged event for user ${user.id}: ${event.name}`);
+  } catch (error) {
+    console.warn(`Error logging event ${event.name}:`, error);
+  }
 }
 
 /**
@@ -116,7 +155,7 @@ async function simulatePageView(user: User, page: string, metadata: Record<strin
 /**
  * Simulate add to cart
  */
-async function simulateAddToCart(user: User, product: Product, variant: 'X' | 'Y'): Promise<void> {
+async function simulateAddToCart(user: User, product: Product, variant: 'control' | 'treatment'): Promise<void> {
   await logEvent(user, {
     name: 'add_to_cart',
     value: product.price,
@@ -125,6 +164,7 @@ async function simulateAddToCart(user: User, product: Product, variant: 'X' | 'Y
       product_name: product.name,
       price: product.price,
       variant,
+      experiment: 'prime_banner'
     },
   });
 }
@@ -141,6 +181,7 @@ async function simulateCheckoutStart(user: User, cart: Product[]): Promise<void>
       total,
       item_count: cart.length,
       items: cart.map(p => ({ product_id: p.id, price: p.price })),
+      experiment: 'prime_banner'
     },
   });
 }
@@ -158,6 +199,7 @@ async function simulatePurchase(user: User, cart: Product[]): Promise<void> {
       total,
       item_count: cart.length,
       items: cart.map(p => ({ product_id: p.id, price: p.price })),
+      experiment: 'prime_banner'
     },
   });
 }
@@ -185,6 +227,20 @@ async function simulateUserJourney(user: User, maxActions: number): Promise<void
     await simulatePageView(user, 'product', { product_id: product.id });
     actions++;
 
+    // 60-80% chance to click on product (for click_through_rate metric)
+    if (Math.random() < 0.7) {
+      await logEvent(user, {
+        name: 'product_click',
+        value: 1,
+        metadata: {
+          product_id: product.id,
+          product_name: product.name,
+          variant: variant,
+          experiment: 'prime_banner'
+        }
+      });
+    }
+
     // 40-60% chance to add to cart
     if (Math.random() < 0.5) {
       cart.push(product);
@@ -206,6 +262,8 @@ async function simulateUserJourney(user: User, maxActions: number): Promise<void
   }
 
   console.log(`User ${user.id} completed ${actions} actions (variant: ${variant})`);
+  
+  // Events are sent immediately via API calls
 }
 
 /**
@@ -245,11 +303,15 @@ async function generateTraffic(userCount: number, maxActions: number): Promise<v
     }
   }
 
-  console.log('Traffic generation completed!');
-  console.log('Note: This is a mock implementation. For real Statsig integration:');
-  console.log('1. Install statsig-node: npm install statsig-node');
-  console.log('2. Set STATSIG_SERVER_SECRET in .env.traffic.local');
-  console.log('3. Replace mock functions with real Statsig API calls');
+  // Shutdown Statsig to flush all events
+  await Statsig.shutdown();
+  
+  console.log('✅ Traffic generation completed!');
+  console.log('📊 Events have been sent to Statsig');
+  console.log('🔍 Check your Statsig console to see experiment data:');
+  console.log('   - Experiment exposures');
+  console.log('   - Conversion events (add_to_cart, checkout_start, purchase)');
+  console.log('   - Experiment results and statistical significance');
 }
 
 /**

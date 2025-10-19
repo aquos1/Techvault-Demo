@@ -164,8 +164,17 @@ export class StatsigAPI {
       description: contract.description || `Experiment: ${contract.experimentKey}`,
       hypothesis: contract.hypothesis || 'Testing new feature',
       groups: normalizedVariants,
-      primaryMetrics: [],
-      secondaryMetrics: [],
+      primaryMetrics: contract.primaryMetrics?.map(m => ({
+        name: m.name,
+        type: m.type,
+        direction: m.direction,
+        hypothesizedValue: m.hypothesizedValue
+      })) || [],
+      secondaryMetrics: contract.secondaryMetrics?.map(m => ({
+        name: m.name,
+        type: m.type,
+        direction: m.direction
+      })) || [],
       idType: this.mapIdType(contract.statsig.idType),
       targetingGateID: contract.statsig.targetingGateID,
       tags: ['★ Core'],

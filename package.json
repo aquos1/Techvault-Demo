@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "traffic": "tsx ./scripts/generateTraffic.ts",
+    "traffic": "dotenv -e .env.local -- tsx ./scripts/generateTraffic.ts",
     "experiment": "tsx scripts/experiment-cli.ts",
     "experiment:create": "tsx scripts/run-experiment.ts",
     "experiment:verify": "tsx scripts/experiment-cli.ts verify",
@@ -30,7 +30,7 @@
     "react": "^18",
     "react-dom": "^18",
     "statsig-js": "^4.0.0",
-    "statsig-node": "^1.0.0",
+    "statsig-node": "^1.1.2",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -38,6 +38,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.19",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "postcss": "^8.4.39",
