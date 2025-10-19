@@ -6,6 +6,7 @@
   "dependencies": {
     "@atlaskit/css-reset": "^6.6.2",
     "@forge/bridge": "5.6.0",
+    "framer-motion": "^4.1.17",
     "react": "^16",
     "react-dom": "^16"
   },
