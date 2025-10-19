@@ -133,6 +133,7 @@ export class MCPClient {
       }
 
       const data = await response.json();
+      console.log(`📊 Statsig API response:`, JSON.stringify(data, null, 2));
       
       return {
         success: true,
