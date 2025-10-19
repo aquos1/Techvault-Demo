@@ -178,7 +178,7 @@ export class StatsigAPI {
       })),
       idType: this.mapIdType(contract.statsig.idType),
       targetingGateID: contract.statsig.targetingGateID,
-      tags: [...contract.metadata.tags, 'automated', 'branch-based'],
+      tags: ['★ Core'],
     };
   }
 
