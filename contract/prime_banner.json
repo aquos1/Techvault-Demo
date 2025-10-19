@@ -46,21 +46,8 @@
     }
   ],
   "allocation": 100,
-  "primaryMetrics": [
-    {
-      "name": "conversion_rate",
-      "type": "ratio",
-      "direction": "increase",
-      "hypothesizedValue": 15
-    }
-  ],
-  "secondaryMetrics": [
-    {
-      "name": "purchase",
-      "type": "count",
-      "direction": "increase"
-    }
-  ],
+  "primaryMetrics": [],
+  "secondaryMetrics": [],
   "branchConfig": {
     "branchName": "exp/prime_banner",
     "targetBranch": "main",
