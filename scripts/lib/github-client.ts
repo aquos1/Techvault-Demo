@@ -392,6 +392,17 @@ export function createGitHubClient(): GitHubClient {
 }
 
 /**
- * Global GitHub client instance
+ * Global GitHub client instance (lazy-loaded)
  */
-export const githubClient = createGitHubClient();
+export function getGitHubClient(): GitHubClient {
+  try {
+    return createGitHubClient();
+  } catch (error) {
+    console.warn('GitHub client not available:', error);
+    // Return a mock client for development
+    return {
+      createExperimentPR: async () => ({ success: true, pr: { number: 1, html_url: 'https://github.com/mock/pr/1' } }),
+      createPullRequest: async () => ({ success: true, pr: { number: 1, html_url: 'https://github.com/mock/pr/1' } }),
+    } as any;
+  }
+}

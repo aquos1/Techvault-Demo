@@ -68,7 +68,7 @@
   },
   "deployment": {
     "platform": "vercel",
-    "waitForDeployment": true,
+    "waitForDeployment": false,
     "deploymentTimeout": 300000
   },
   "statsig": {
