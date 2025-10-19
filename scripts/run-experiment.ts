@@ -62,9 +62,14 @@ class ExperimentRunner {
       console.log(`✅ Committed and pushed changes to branch: ${branchName}`);
 
       // Step 5: Wait for deployment (if enabled)
+      let previewUrl = '';
       if (contract.deployment.waitForDeployment) {
-        const previewUrl = await this.waitForDeployment(branchName, contract);
+        previewUrl = await this.waitForDeployment(branchName, contract);
         console.log(`✅ Deployment ready at: ${previewUrl}`);
+      } else {
+        // Fallback URL for when deployment is disabled
+        previewUrl = `https://${branchName.replace(/[^a-z0-9-]/gi, '-')}-dh25-demo-site.vercel.app`;
+        console.log(`⚠️  Using fallback URL: ${previewUrl}`);
       }
 
       // Step 6: Create experiment in Statsig
