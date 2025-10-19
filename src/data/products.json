@@ -1,0 +1,58 @@
+[
+  {
+    "id": "1",
+    "name": "Wireless Bluetooth Headphones",
+    "price": 89.99,
+    "image": "/api/placeholder/300/200",
+    "description": "Premium wireless headphones with noise cancellation and 30-hour battery life."
+  },
+  {
+    "id": "2", 
+    "name": "Smart Fitness Watch",
+    "price": 199.99,
+    "image": "/api/placeholder/300/200",
+    "description": "Advanced fitness tracking with heart rate monitor, GPS, and water resistance."
+  },
+  {
+    "id": "3",
+    "name": "Portable Bluetooth Speaker",
+    "price": 49.99,
+    "image": "/api/placeholder/300/200", 
+    "description": "Compact wireless speaker with 360-degree sound and 12-hour battery life."
+  },
+  {
+    "id": "4",
+    "name": "USB-C Fast Charger",
+    "price": 24.99,
+    "image": "/api/placeholder/300/200",
+    "description": "60W fast charging adapter with multiple ports for all your devices."
+  },
+  {
+    "id": "5",
+    "name": "Wireless Gaming Mouse",
+    "price": 79.99,
+    "image": "/api/placeholder/300/200",
+    "description": "High-precision gaming mouse with customizable RGB lighting and 50-hour battery."
+  },
+  {
+    "id": "6",
+    "name": "Mechanical Keyboard",
+    "price": 129.99,
+    "image": "/api/placeholder/300/200",
+    "description": "RGB mechanical keyboard with tactile switches and programmable keys."
+  },
+  {
+    "id": "7",
+    "name": "4K Webcam",
+    "price": 149.99,
+    "image": "/api/placeholder/300/200",
+    "description": "Ultra HD webcam with auto-focus, noise reduction, and privacy shutter."
+  },
+  {
+    "id": "8",
+    "name": "Ergonomic Office Chair",
+    "price": 299.99,
+    "image": "/api/placeholder/300/200",
+    "description": "Premium ergonomic chair with lumbar support and adjustable height."
+  }
+]
