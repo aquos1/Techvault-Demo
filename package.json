@@ -20,8 +20,13 @@
     "env:check": "npm run env:validate"
   },
   "dependencies": {
+    "@statsig/js-client": "^3.27.0",
+    "@statsig/session-replay": "^3.27.0",
+    "@statsig/web-analytics": "^3.27.0",
+    "@types/node-fetch": "^2.6.13",
     "dotenv": "^17.2.3",
     "next": "14.2.5",
+    "node-fetch": "^3.3.2",
     "react": "^18",
     "react-dom": "^18",
     "statsig-js": "^4.0.0",

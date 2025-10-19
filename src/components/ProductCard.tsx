@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Product, CartItem } from '@/lib/analytics';
+import { Product, CartItem, logExperimentExposure } from '@/lib/analytics';
 import VariantCTA from './VariantCTA';
+import { getExperiment, logExposure } from '../lib/statsigClient';
+import { useState, useEffect } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -19,42 +21,36 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     component: 'ProductCard',
     parameter: 'showBadge'
   });
-  // Experiment: prime_banner
-  const experiment = await getExperiment('prime_banner');
-  const showBadge = experiment.metadata?.config?.showBadge ?? false;
-  
-  // Log exposure when user sees this experiment
-  await logExposure('prime_banner', experiment.variant, {
-    component: 'ProductCard',
-    parameter: 'showBadge'
-  });
-  // Experiment: prime_banner
-  const experiment = await getExperiment('prime_banner');
-  const showBadge = experiment.metadata?.config?.showBadge ?? false;
-  
-  // Log exposure when user sees this experiment
-  await logExposure('prime_banner', experiment.variant, {
-    component: 'ProductCard',
-    parameter: 'showBadge'
-  });
-  // Experiment: prime_banner
-  const experiment = await getExperiment('prime_banner');
-  const showBadge = experiment.metadata?.config?.showBadge ?? false;
-  
-  // Log exposure when user sees this experiment
-  await logExposure('prime_banner', experiment.variant, {
-    component: 'ProductCard',
-    parameter: 'showBadge'
-  });
-  // Experiment: prime_banner
-  const experiment = await getExperiment('prime_banner');
-  const showBadge = experiment.metadata?.config?.showBadge ?? false;
-  
-  // Log exposure when user sees this experiment
-  await logExposure('prime_banner', experiment.variant, {
-    component: 'ProductCard',
-    parameter: 'showBadge'
-  });
+  const [showBadge, setShowBadge] = useState(false);
+  const [experimentVariant, setExperimentVariant] = useState('control');
+
+  useEffect(() => {
+    const fetchExperiment = async () => {
+      try {
+        // Experiment: prime_banner
+        const experiment = await getExperiment('prime_banner');
+        setShowBadge(experiment.metadata?.config?.showBadge ?? false);
+        setExperimentVariant(experiment.variant);
+        
+        // Log exposure when user sees this experiment
+        await logExposure('prime_banner', experiment.variant, {
+          component: 'ProductCard',
+          parameter: 'showBadge'
+        });
+
+        // Also log to Statsig SDK
+        await logExperimentExposure('prime_banner', experiment.variant, {
+          component: 'ProductCard',
+          parameter: 'showBadge'
+        });
+      } catch (error) {
+        console.error('Error fetching experiment or logging exposure:', error);
+      }
+    };
+
+    fetchExperiment();
+  }, []);
+
   return (
     <div className="amazon-card p-4 hover:shadow-lg transition-shadow">
       <Link href={`/product/${product.id}`}>
@@ -100,7 +96,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               </span>
             )}
           </div>
-          <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">prime</span>
+          {showBadge && (
+            <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">prime</span>
+          )}
         </div>
         
         <div className="text-xs text-gray-500 mb-3">
