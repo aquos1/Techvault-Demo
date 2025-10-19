@@ -9,7 +9,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join, resolve } from 'path';
 import { execSync } from 'child_process';
 import { validateContract, createDefaultContract, type ExperimentContract } from './lib/contract-schema.js';
-import { CodeGenerator } from './lib/code-generator.js';
+import { FastCodeGenerator } from './lib/fast-code-generator.js';
 import { StatsigAPI } from './lib/statsig-api.js';
 import { getVercelClient } from './lib/vercel-client.js';
 import { getGitHubClient } from './lib/github-client.js';
@@ -20,12 +20,12 @@ import { getGitHubClient } from './lib/github-client.js';
 class ExperimentRunner {
   private projectRoot: string;
   private statsigAPI: StatsigAPI;
-  private codeGenerator: CodeGenerator;
+  private codeGenerator: FastCodeGenerator;
 
   constructor() {
     this.projectRoot = resolve(process.cwd());
     this.statsigAPI = new StatsigAPI();
-    this.codeGenerator = new CodeGenerator(this.projectRoot);
+    this.codeGenerator = new FastCodeGenerator(this.projectRoot);
   }
 
   /**
